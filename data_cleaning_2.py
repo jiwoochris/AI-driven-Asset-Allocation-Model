@@ -2,7 +2,7 @@ import pandas as pd
 
 # Read the CSV file
 folder_path = 'data/'
-file_path = 'GOLD.csv'
+file_path = '10y-treasury.csv'
 df = pd.read_csv(folder_path + file_path)
 
 # Display the DataFrame
@@ -32,7 +32,10 @@ df['Date'] = df['Date'].apply(convert_date_format)
 # Function to convert date format
 def remove_commas(text_with_commas):
 
-    text_without_commas = text_with_commas.replace(",", "")
+    if type(text_with_commas) == str:
+        text_without_commas = text_with_commas.replace(",", "")
+    else :
+        return text_with_commas
 
     return text_without_commas
 

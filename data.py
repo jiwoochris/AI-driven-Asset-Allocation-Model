@@ -22,29 +22,30 @@ for file in csv_files:
     # Select a date range
     start_date = '2014-03-24'
     end_date = '2022-12-29'
-    selected_rows = sorted_df[(sorted_df['Date'] >= start_date) & (sorted_df['Date'] <= end_date)]
-
-    print("\nSelected rows for the date range:")
-    print(selected_rows)
-
-
 
 
     date_range = pd.date_range(start_date, end_date, freq='D')
     date_range_df = pd.DataFrame({'Date': date_range})
 
     # Perform a left join to fill missing dates with None (or NaN for numerical columns)
-    fill_empty_rows = pd.merge(date_range_df, selected_rows, on='Date', how='left')
+    fill_empty_rows = pd.merge(date_range_df, sorted_df, on='Date', how='left')
 
     # Replace NaN values with None for non-numerical columns if needed
     fill_empty_rows.loc[fill_empty_rows['Close'].isna(), 'Close'] = np.nan
 
     replace_na_rows = fill_empty_rows.fillna(method='ffill')
+    replace_na_rows = fill_empty_rows.fillna(method='bfill')
 
     # Change the column name
     column_name_rows = replace_na_rows.rename(columns={'Close': file[2:-4]})
 
     # print(column_name_rows)
+
+
+    selected_rows = column_name_rows[(column_name_rows['Date'] >= start_date) & (column_name_rows['Date'] <= end_date)]
+
+    # print("\nSelected rows for the date range:")
+    # print(selected_rows)
 
     asset_list.append(column_name_rows)
 
@@ -79,7 +80,7 @@ correlation.to_excel('correlation_matrix.xlsx')
 result.set_index('Date', inplace=True)
 
 normalized_df = result.divide(result.iloc[0])
-print(normalized_df)
+# print(normalized_df)
 
 # Plot the data
 fig, ax = plt.subplots(figsize=(12, 8))
@@ -94,3 +95,18 @@ plt.title('Time Series Plot of Various Financial Indices')
 plt.legend(loc='best')
 
 plt.show()
+
+
+
+
+
+
+
+
+# Calculate daily returns
+daily_returns = result.pct_change()
+
+# Calculate the volatility (standard deviation of daily returns)
+volatility = daily_returns.std()
+
+print("\nVolatility:\n", volatility)
