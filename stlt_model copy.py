@@ -72,8 +72,8 @@ print(result)
 
 
 
-X = result[['S&P500', 'Gold', 'WTI', 'USD']]   # , '10y-treasury', , '경제심리지수', 'Kospi200', 
-treasury = result[['10y-treasury']]
+X = result[['S&P500', 'Gold', 'WTI', 'USD', '10y-treasury']]   # , '10y-treasury', '경제심리지수'
+treasury = result[[]]
 
 X_lag_10 = X.shift(10)
 X_diff_10 = (X - X_lag_10) / X_lag_10
@@ -123,117 +123,62 @@ print(y)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, shuffle=False)
 
 
-# Convert the training and testing data to PyTorch tensors
-X_train_t = torch.tensor(X_train.values.astype(np.float32))
-y_train_t = torch.tensor(y_train.values.astype(np.float32)).view(-1, 1)
-X_test_t = torch.tensor(X_test.values.astype(np.float32))
-y_test_t = torch.tensor(y_test.values.astype(np.float32)).view(-1, 1)
+from sklearn.metrics.pairwise import cosine_similarity
+def get_regression_by_similar_pattern(X_train, y_train, pattern, similarity_threshold=0.95):
 
-# Define the neural network model
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.fc1 = nn.Linear(X_train_t.shape[1], 128)
-        self.fc2 = nn.Linear(128, 1)
+    # Calculate cosine similarity between the pattern and all training data
+    similarities = cosine_similarity(X_train, pattern.to_numpy().reshape(-1, 25))
 
-        # self.fc3 = nn.Linear(64, 1)
-        
-        # self.relu = nn.ReLU()
-        # self.sigmoid = nn.Sigmoid()
+    # Get the indices of training data with cosine similarity greater than the specified threshold
+    similar_indices = np.where(similarities >= similarity_threshold)[0]
 
-        self.tanh = nn.Tanh()
+    # Check if similar_indices is empty
+    if similar_indices.size == 0 :
+        # # If empty, use top n similarities
+        # similar_indices = np.argsort(similarities, axis=0)[-top_n:].flatten()
+        predicted_outputs = [0]
 
-
-    def forward(self, x):
-        x = self.tanh(self.fc1(x))
-        x = self.fc2(x)
-        return x
-
-# Create an instance of the model
-model = Net()
-
-
-# define the loss function with L1 regularization
-criterion = nn.MSELoss()
-l1_lambda = 0.001  # L1 regularization strength
-
-
-# define the optimizer
-optimizer = optim.Adam(model.parameters(), lr=0.00001, weight_decay=0.01)
-
-
-# Train the model on the training data
-tolerance = 10
-best_mse = float('inf')
-no_improvement_count = 0
-
-from torch.utils.data import DataLoader, TensorDataset
-
-
-batch_size = 8
-train_loader = DataLoader(TensorDataset(X_train_t, y_train_t), batch_size=batch_size, shuffle=False)
-
-num_epochs = 500
-
-for epoch in range(num_epochs):
-    running_loss = 0.0
-    for batch_X, batch_y in train_loader:
-        optimizer.zero_grad()
-        outputs = model(batch_X)
-        loss = criterion(outputs, batch_y)
-
-        l1_norm = sum([torch.sum(torch.abs(param)) for param in model.fc1.weight])
-        loss += l1_lambda * l1_norm  # add L1 regularization term
-
-        loss.backward()
-        optimizer.step()
-        running_loss += loss.item() * batch_X.size(0) # multiply by batch size
-
-    # Evaluate the model on the testing data
-    y_pred_t = model(X_test_t)
-    mse = mean_squared_error(y_pred_t.detach().numpy(), y_test_t.detach().numpy())
-    print('Epoch [%d], Train Loss: %.8f, Test Loss: %.8f' % (epoch+1, running_loss/X_train_t.shape[0], mse))
-
-    # Check for early stopping
-    if mse < best_mse:
-        best_mse = mse
-        no_improvement_count = 0
-        best_model_state = model.state_dict()
     else:
-        no_improvement_count += 1
-        if no_improvement_count >= tolerance:
-            print('Early stopping after epoch %d' % epoch)
-            break
+        # Get the corresponding predicted outputs
+        predicted_outputs = y_train[similar_indices]
+
+    # Calculate the average predicted output
+    average_predicted_output = np.mean(predicted_outputs)
+
+    return average_predicted_output
 
 
-# Save the best model state to a file
-torch.save(best_model_state, 'best_model_state.pth')
+# Create an empty list to store the predicted outputs
+predicted_outputs = []
+# Loop through the validation data (or any other data you'd like to predict)
+for pattern in X_test.iterrows():
 
-# Load the best model state from a file (for example)
-best_model_state = torch.load('best_model_state.pth')
-model.load_state_dict(best_model_state)
+    # Get the predicted output for the current pattern
+    predicted_output = get_regression_by_similar_pattern(X_train, y_train, pattern[1], similarity_threshold=0.95)     # , n=sim_n
+    predicted_outputs.append(predicted_output)
+
+print(predicted_outputs)
 
 
-# Evaluate the model on the testing data
-y_pred_t = model(X_test_t)
-
-print('X_test :\n', X_test)
-print('y_test :\n', y_test)
-
+from sklearn.metrics import mean_absolute_error
 
 # Evaluation metric: accuracy
 def evaluate_accuracy(y_true, y_pred):
-    y_true_labels = (y_true.detach().numpy() >= 0)
-    y_pred_labels = (y_pred.detach().numpy() >= 0)
+    y_true_labels = (y_true >= 0).astype(int)
+    y_pred_labels = (y_pred >= 0).astype(int)
     return np.mean(y_true_labels == y_pred_labels)
 
+# Assuming y_true and y_pred are your true and predicted values respectively
+mae = mean_absolute_error(y_test, predicted_outputs)
+print('Mean Absolute Error:', mae)
 
-criterion = nn.L1Loss()     # mean absolute error
-mae = criterion(y_pred_t, y_test_t)
-print('Mean Absolute Error:', mae.item())
-
-accuracy = evaluate_accuracy(y_test_t, y_pred_t)
+accuracy = evaluate_accuracy(y_test, np.asarray(predicted_outputs))
 print("Accuracy : ", accuracy)
+
+
+
+
+
 
 
 
@@ -241,7 +186,7 @@ print("Accuracy : ", accuracy)
 
 fig, ax = plt.subplots(figsize=(12, 8))
 
-plt.plot(y_pred_t.detach().numpy(), y_test)
+plt.plot(predicted_outputs, y_test)
 
 # Draw a line at x=0 and y=0
 plt.axhline(y=0, color='gray', linestyle='--')
@@ -258,9 +203,9 @@ fig2, ax1 = plt.subplots()
 # Plot the first dataset with the first y-axis
 color = 'tab:red'
 ax1.set_ylabel('Prediction', color=color)
-ax1.plot(list(y_pred_t.detach().numpy()), color=color)
+ax1.plot(predicted_outputs, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
-# ax1.axhline(y=0, color=color, linestyle='--')
+ax1.axhline(y=0, color=color, linestyle='--')
 
 # Create a second y-axis for the second dataset
 ax2 = ax1.twinx()

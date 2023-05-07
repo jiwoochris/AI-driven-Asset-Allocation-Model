@@ -24,7 +24,7 @@ for file in csv_files:
     sorted_df = df.sort_values(by='Date')
 
     # Select a date range
-    start_date = '2001-01-02'
+    start_date = '2001-01-01'
     end_date = '2022-12-29'
 
 
@@ -39,6 +39,7 @@ for file in csv_files:
 
     replace_na_rows = fill_empty_rows.fillna(method='ffill')
     replace_na_rows = fill_empty_rows.fillna(method='bfill')
+    replace_na_rows = fill_empty_rows.fillna(method='ffill')
 
     # Change the column name
     column_name_rows = replace_na_rows.rename(columns={'Close': file[2:-4]})
@@ -93,13 +94,30 @@ for asset in normalized_df.columns:
     plt.plot(normalized_df[asset], label=asset)
 
 
-plt.xlabel('Date')
-plt.ylabel('Value')
-plt.title('Time Series Plot of Various Financial Indices')
-plt.legend(loc='best')
+# Create the figure and axis objects
+fig2, ax1 = plt.subplots()
+
+# Plot the first dataset with the first y-axis
+color = 'tab:red'
+ax1.set_ylabel('Prediction', color=color)
+ax1.plot(result['Kospi200'], color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+# ax1.axhline(y=0, color=color, linestyle='--')
+
+# Create a second y-axis for the second dataset
+ax2 = ax1.twinx()
+
+# Plot the second dataset with the second y-axis
+color = 'tab:blue'
+ax2.set_ylabel('Real', color=color)
+ax2.plot(result['RLOLITONOSTSAM'], color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+# ax2.axhline(y=0, color=color, linestyle='--')
+
+# Add a title and legend
+plt.title('Two related datasets with different volatility')
 
 plt.show()
-
 
 
 
@@ -115,3 +133,32 @@ volatility = daily_returns.std()
 
 print("\nVolatility:\n", volatility)
 
+
+
+
+
+max_lag = 360  # Adjust this to your desired maximum lag
+max_corr = 0
+optimal_lag = 0
+
+
+for lag in range(1, max_lag + 1):
+
+    def from_1h_to_1w(data) :
+        data = data[::7]
+        return data
+
+    shifted_revenue = result['RLOLITONOSTSAM'].iloc[:-lag]
+
+    shifted_stock_price = result['Kospi200'].iloc[lag:]
+
+    corr = np.corrcoef(from_1h_to_1w(shifted_stock_price), from_1h_to_1w(shifted_revenue))[0, 1]
+
+    print(corr)
+    
+    if abs(corr) > abs(max_corr):
+        max_corr = corr
+        optimal_lag = lag
+
+print(f"Optimal lag between stock price and revenue: {optimal_lag} days")
+print(f"Correlation at optimal lag: {max_corr}")
