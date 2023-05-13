@@ -2,7 +2,7 @@ import pandas as pd
 
 # Read the CSV file
 folder_path = 'data/'
-file_path = '10y-treasury.csv'
+file_path = '3m-treasury.csv'      # S&P500
 df = pd.read_csv(folder_path + file_path)
 
 # Display the DataFrame

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 data_folder = "cleaned_data/"
 csv_files = ["m_S&P500.csv", "m_EuroStoxx50.csv", "m_Gold.csv", "m_Kospi200.csv", "m_USD.csv", "m_WTI.csv", "m_K_treasury.csv", "m_K_corp_bond.csv", "m_global_bonds.csv", "KORLOLITONOSTSAM.csv"]     # "m_KOSDAQ150.csv", 
-
-csv_files = ["m_Kospi200.csv", "KORLOLITONOSTSAM.csv"]
+csv_files = ["m_S&P500.csv", "m_EuroStoxx50.csv", "m_global_bonds.csv"]
+# csv_files = ["m_Kospi200.csv", "KORLOLITONOSTSAM.csv"]
 
 asset_list = []
 
