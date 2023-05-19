@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 data_folder = "cleaned_data/"
-csv_files = ["m_S&P500.csv", "m_EuroStoxx50.csv", "m_Gold.csv", "m_Kospi200.csv", "m_USD.csv", "m_WTI.csv", "m_K_treasury.csv", "m_K_corp_bond.csv", "m_global_bonds.csv", "KORLOLITONOSTSAM.csv"]     # "m_KOSDAQ150.csv", 
-csv_files = ["m_S&P500.csv", "m_EuroStoxx50.csv", "m_global_bonds.csv"]
-# csv_files = ["m_Kospi200.csv", "KORLOLITONOSTSAM.csv"]
+csv_files = ["m_S&P500.csv", "m_Gold.csv", "m_Kospi200.csv", "m_USD.csv", "m_WTI.csv", "m_K_treasury.csv", "m_K_corp_bond.csv", "m_global_bonds.csv"]     # "m_KOSDAQ150.csv", 
+
+# csv_files = ["m_Kospi200.csv", "KORLOLITONOSTSAM.csv"] "m_EuroStoxx50.csv", 
 
 asset_list = []
 
@@ -62,6 +62,32 @@ for df in asset_list[1:]:
     result = pd.merge(result, df, on='Date', how='inner')
 
 print(result)
+
+
+# # Set the 'Date' column as the index
+# result.set_index('Date', inplace=True)
+
+# returns = result.pct_change()
+
+
+
+# # Calculate covariance of returns
+# cov_matrix = returns.cov()
+
+# # ["m_S&P500.csv", "m_Gold.csv", "m_Kospi200.csv", "m_USD.csv", "m_WTI.csv", "m_K_treasury.csv", "m_K_corp_bond.csv", "m_global_bonds.csv"]
+# weights = np.array([0.20, 0.14, 0.14, 0.05, 0.01, 0.15, 0.15, 0.10])
+
+# # Calculate portfolio variance
+# port_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
+
+# # Calculate portfolio volatility (standard deviation)
+# port_volatility = np.sqrt(port_variance)
+
+# print(f"The portfolio's risk (volatility) is: {port_volatility}")
+
+# exit()
+
+
 
 
 
