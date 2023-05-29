@@ -2,7 +2,7 @@ import pandas as pd
 
 # Read the CSV file
 folder_path = 'data/'
-file_path = 'USD.csv'
+file_path = 'Kospi.csv'
 df = pd.read_csv(folder_path + file_path)
 
 # Display the DataFrame
@@ -48,7 +48,7 @@ df = df.rename(columns={'날짜': 'Date', '종가': 'Close'})
 
 
 # Save the modified DataFrame to a new CSV file
-df.to_csv(folder_path + "m_" + file_path, index=False)
+df.to_csv("cleaned_data/" + "m_" + file_path, index=False)
 
 # Display the modified DataFrame
 print("\nModified DataFrame:")

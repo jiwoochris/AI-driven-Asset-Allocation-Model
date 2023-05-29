@@ -29,7 +29,7 @@ for file in csv_files:
 
     # Select a date range
     start_date = '2000-01-18'
-    end_date = '2023-05-01'
+    end_date = '2023-05-26'
 
 
     date_range = pd.date_range(start_date, end_date, freq='D')
@@ -70,7 +70,7 @@ for df in asset_list[1:]:
 
 
 
-X = result[['S&P500']]   # , '10y-treasury', , '경제심리지수', 'Kospi200', 
+X = result[['S&P500', 'Gold']]   # , '10y-treasury', , '경제심리지수', 'Kospi200', 
 treasury = result[['10y-treasury', '3m-treasury']]
 range_90 = result[['S&P500']]
 
@@ -101,7 +101,7 @@ print(X_diff)
 
 
 
-y_label_asset = 'S&P500'
+y_label_asset = 'Gold'
 
 y_diff_1 = result[y_label_asset].shift(-30) / result[y_label_asset] - 1
 y_diff_2 = result[y_label_asset].shift(-25) / result[y_label_asset] - 1
@@ -170,9 +170,9 @@ print(predict)
 
 
 
-
-tree.plot_tree(clf)
-plt.show()
+# # visualize tree
+# tree.plot_tree(clf)
+# plt.show()
 
 
 
